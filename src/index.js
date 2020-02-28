@@ -29,7 +29,7 @@ function App() {
   const [seed, setSeed] = useState(possibleSeed);
   const fakeSample = getSeededSampleOfN(ALLBEERTERMS, DIFFICULTYLEVEL, seed);
 
-  const handleInputChange = ev => {
+  const handleSearchInputChange = ev => {
     if (ev.target.value.length > 2) {
       fetch(
         "//lauri.space/alko-product-api/products/beers?search=" +
@@ -113,7 +113,7 @@ function App() {
           <input
             class=""
             placeholder="Lapin Kulta..."
-            onChange={handleInputChange}
+            onChange={handleSearchInputChange}
             value={inputState}
           />
           <BeerList beers={searchedBeers} onClick={handleBeerChoose} />
