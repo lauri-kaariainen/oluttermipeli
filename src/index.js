@@ -109,7 +109,7 @@ function App() {
         </div>
       ) : gameState === GAMESTATES.GETBEER ? (
         <div class="wrapper">
-          <div class="text info">Haetaan ensin viini hakusanalla:</div>
+          <div class="text info">Haetaan ensin olut hakusanalla:</div>
           <input
             class=""
             placeholder="Lapin Kulta..."
@@ -120,7 +120,7 @@ function App() {
         </div>
       ) : gameState === GAMESTATES.GUESSING ? (
         <div class="wrapper">
-          <div class="text info">Valitse mitkä termit koskevat tätä viiniä</div>
+          <div class="text info">Valitse mitkä termit koskevat tätä olutta</div>
           <div class="list">
             {console.log(guessableTermsState)}
             {guessableTermsState.map(term => (
