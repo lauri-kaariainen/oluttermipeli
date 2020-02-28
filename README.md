@@ -1,2 +1,0 @@
-# oluttermipeli
-Created with CodeSandbox
