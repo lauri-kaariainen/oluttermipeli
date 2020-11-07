@@ -31,8 +31,7 @@
     "stylus": "^0.54.5"
   },
   "dependencies": {
-    "preact": "^10.2.1",
-    "preact-compat": "3.19.0"
+    "preact": "10.5.5"
   },
   "jest": {
     "verbose": true,

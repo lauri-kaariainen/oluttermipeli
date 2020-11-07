@@ -1,17 +1,20 @@
 import "./style";
 import { render } from "preact";
-import { useState } from "preact/compat";
-import { BeerItem } from "./components/BeerItem.js";
+import { useState } from "preact/hooks";
+// import { BeerItem } from "./components/BeerItem.js";
 import { getSeededSampleOfN, shuffle, uniqueShallow } from "./helpers.js";
 import { getRealTerms } from "./getTerms.js";
-import { BeerList } from "./components/BeerList.js";
+// import { BeerList } from "./components/BeerList.js";
+import { PreStart } from "./components/gamestates/PreStart.js";
+import { GetDrink } from "./components/gamestates/GetDrink.js";
+import { Guessing } from "./components/gamestates/Guessing.js";
+
 import ALLBEERTERMS from "./oluttermit.json";
 
 const GAMESTATES = {
   PRESTART: 0,
   GETBEER: 1,
-  GUESSING: 2,
-  RESULT: 3
+  GUESSING: 2
 };
 
 //lower is easier
@@ -19,59 +22,69 @@ const DIFFICULTYLEVEL = 6;
 
 const possibleSeed = Math.floor(ALLBEERTERMS.length * Math.random());
 
+// "//lauri.space/alko-product-api/products/beers?search="
 function App() {
   const [gameState, setGameState] = useState(GAMESTATES.PRESTART);
   const [inputState, setInputState] = useState("");
   const [guessableTermsState, setGuessableTermsState] = useState([]);
-  const [searchedBeers, setSearchedBeers] = useState([]);
+  const [searchedDrinks, setSearchedDrinks] = useState([]);
   const [guessesList, setGuessesList] = useState([]);
-  const [correctBeerTerms, setCorrectBeerTerms] = useState([]);
+  const [correctDrinkTerms, setCorrectDrinkTerms] = useState([]);
   const [seed, setSeed] = useState(possibleSeed);
-  const fakeSample = getSeededSampleOfN(ALLBEERTERMS, DIFFICULTYLEVEL, seed);
+  const [numOfRepeats, setNumOfRepeats] = useState(0);
+  const [selectedDrinkName, setSelectedDrinkName] = useState("");
 
-  const handleSearchInputChange = ev => {
+  const getFakeSample = (type) =>
+    getSeededSampleOfN(ALLBEERTERMS, DIFFICULTYLEVEL, seed);
+
+  const handleInputChange = (ev) => {
     if (ev.target.value.length > 2) {
       fetch(
         "//lauri.space/alko-product-api/products/beers?search=" +
           encodeURIComponent(ev.target.value)
       )
-        .then(e => e.json())
-        // .then(e => console.log(e))
-        .then(res =>
-          res.data.map(el => ({
+        .then((e) => e.json())
+        .then((res) =>
+          res.data.map((el) => ({
             id: el.attributes["product-id"],
             name: el.attributes.name
           }))
         )
-        // .then(e => (console.log(e), e))
-        .then(e => setSearchedBeers(e));
+        .then((e) => setSearchedDrinks(e));
     }
     setInputState(ev.target.value);
   };
 
-  const handleBeerChoose = id =>
+  const handleDrinkChoose = (id) =>
     getRealTerms(id)
-      //   .then(res => (console.log("beerchooses", res), res))
+      // .then(res => (console.log("drinkchooses", res), res))
       .then(
-        res =>
-          setCorrectBeerTerms(res.split(",").map(word => word.trim())) ||
+        (res) =>
+          setSelectedDrinkName(res.name) ||
+          setCorrectDrinkTerms(
+            res.terms.split(",").map((word) => word.trim())
+          ) ||
           setGuessableTermsState(
             shuffle(
-              fakeSample
-                .concat(res.split(",").map(word => word.trim()))
+              getFakeSample(res.type)
+                .concat(res.terms.split(",").map((word) => word.trim()))
                 .filter(uniqueShallow)
             ).sort()
           ) ||
           setGameState(GAMESTATES.GUESSING)
       );
 
-  const handleGuessingBeer = term => {
-    if (!guessesList.includes(term)) setGuessesList(guessesList.concat(term));
-    else setGuessesList(guessesList.filter(guess => guess !== term));
+  const handleGuessingDrink = (guess) => {
+    setGuessableTermsState(
+      guessableTermsState.filter((term) => term !== guess)
+    );
+    setGuessesList(guessesList.concat(guess));
   };
 
-  const getCorrectGuesses = _ =>
-    guessesList.filter(guess => correctBeerTerms.includes(guess));
+  const getCorrectGuesses = (_) =>
+    guessesList.filter((guess) => correctDrinkTerms.includes(guess));
+
+  const restartFromScratch = (_) => window.location.reload();
 
   return (
     <div>
@@ -89,75 +102,45 @@ function App() {
         </span>
       </h1>
       {gameState === GAMESTATES.PRESTART ? (
-        <div class="wrapper">
-          <div class="text info">
-            Jos haluat pelata muiden kanssa, anna heille siemenluku:{" "}
-            <span class="seedcode">{seed}</span>
-          </div>
-
-          <div>
-            Tai syötä tähän heidän siemenlukunsa:
-            <input
-              class="seedInput"
-              onChange={evt => setSeed(evt.target.value)}
-              value={seed}
-            />
-          </div>
-          <button onClick={setGameState.bind(null, GAMESTATES.GETBEER)}>
-            Aloita!
-          </button>
-        </div>
-      ) : gameState === GAMESTATES.GETBEER ? (
-        <div class="wrapper">
-          <div class="text info">Haetaan ensin olut hakusanalla:</div>
-          <input
-            class=""
-            placeholder="Lapin Kulta..."
-            onChange={handleSearchInputChange}
-            value={inputState}
-          />
-          <BeerList beers={searchedBeers} onClick={handleBeerChoose} />
-        </div>
+        <PreStart
+          seed={seed}
+          setSeed={setSeed}
+          setGameState={setGameState}
+          GAMESTATES={GAMESTATES}
+        />
+      ) : gameState === GAMESTATES.GETDRINK ? (
+        <GetDrink
+          handleInputChange={handleInputChange}
+          inputState={inputState}
+          searchedDrinks={searchedDrinks}
+          handleDrinkChoose={handleDrinkChoose}
+        />
       ) : gameState === GAMESTATES.GUESSING ? (
-        <div class="wrapper">
-          <div class="text info">Valitse mitkä termit koskevat tätä olutta</div>
-          <div class="list">
-            {console.log(guessableTermsState)}
-            {guessableTermsState.map(term => (
-              <BeerItem
-                term={term}
-                onClick={handleGuessingBeer}
-                isSelected={guessesList.includes(term)}
-              />
-            ))}
-          </div>
-          <button
-            class="guessingDoneButton green"
-            onClick={setGameState.bind(null, GAMESTATES.SHOWINGRESULTS)}
-          >
-            Lukitsen vastaukset
-          </button>
-        </div>
-      ) : gameState === GAMESTATES.SHOWINGRESULTS ? (
-        <div class="wrapper">
-          <div class="text info">
-            Sait oikein {getCorrectGuesses().length}/
-            {correctBeerTerms.length + " "}
-            vaihtoehdosta
-            {/* {getCorrectGuesses().length
-              ? "; " + getCorrectGuesses().join(", ")
-              : ""} */}
-          </div>
-          <div class="text info">
-            Vääriä vastauksia oli{" "}
-            {guessesList.length - getCorrectGuesses().length + " "} kpl
-          </div>
-          <div class="text info points">
-            Pisteesi ovat{" "}
-            {getCorrectGuesses().length -
-              (guessesList.length - getCorrectGuesses().length)}
-          </div>
-        </div>
+        [
+          <span class="bold">{selectedDrinkName}</span>,
+          <br />,
+          <span>
+            {correctDrinkTerms.every((e) => guessesList.includes(e)) ? (
+              [
+                <span>Arvasit kaikki oikein!</span>,
+                <button onClick={restartFromScratch}>
+                  Aloita uuden oluen kanssa
+                </button>
+              ]
+            ) : (
+              <span></span>
+            )}
+          </span>,
+          <Guessing
+            guessableTermsState={guessableTermsState}
+            handleGuessingDrink={handleGuessingDrink}
+            correctGuesses={getCorrectGuesses()}
+            guessesList={guessesList}
+            setGameState={setGameState}
+            GAMESTATES={GAMESTATES}
+            correctDrinkTerms={correctDrinkTerms}
+          />
+        ]
       ) : (
         <div />
       )}
