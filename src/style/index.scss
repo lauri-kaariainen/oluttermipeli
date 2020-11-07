@@ -1,5 +1,9 @@
 html, body {
 	// font: 14px/1.21 'Helvetica Neue', arial, sans-serif;
+	// font: 17px/1.21 '', monospace, sans-serif;
+	// font: 14px/1.21 'Helvetica Neue', arial, sans-serif;
+	font-size:17px;
+	font-family:monospace;
 	font: 17px/1.21 '', monospace, sans-serif;
 	font-weight: 400;
 	color: #777;
@@ -64,12 +68,39 @@ button{
 .seedInput {
 	width:50px;
 }
+// .selected {
+// 	background:rgb(228, 62, 62);
+// 	// filter:invert(1);
+// }
+
+// .green {
+// 	color: white;
+// 	background: #64a500;
+// }
+
 .selected {
 	background:rgb(228, 62, 62);
 	// filter:invert(1);
 }
 
+.selected.correctGuess {
+	background:#64a500;
+}
+.right {
+	text-align: right;
+}
+.flexSpaceBetween{
+	display: flex;
+	justify-content: space-evenly;
+}
 .green {
 	color: white;
 	background: #64a500;
+}
+
+.searchedlist {
+	display: flex;
+	align-items: start;
+	flex-direction: column;
+	margin:10px;
 }
